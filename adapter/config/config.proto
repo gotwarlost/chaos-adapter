@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+// config for chaos adapter
+package adapter.chaos.config;
+
+import "gogoproto/gogo.proto";
+
+option go_package="config";
+
+// config for scpquota adapter
+message Params {
+    string test = 1;
+}

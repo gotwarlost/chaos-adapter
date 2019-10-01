@@ -1,0 +1,46 @@
+@startuml
+
+node "Client Pod" {
+    [Client] as cc
+    [Client Envoy Proxy] as ccep
+}
+
+node "Istio Mixer pod" {
+    [Istio Policy\nMixer] as ipm
+    [Istio envoy proxy] as iep
+}
+
+[Adapter headless service] as cas
+
+node "Adapter Pod1" {
+    [Envoy Proxy1] as cep1
+    [Adapter1] as ca1
+}
+
+node "Adapter Pod2" {
+    [Envoy Proxy2] as cep2
+    [Adapter2] as ca2
+}
+
+node "Server pod" {
+    [Server Envoy Proxy] as sep
+    [Server] as s
+}
+
+cc -> ccep: HTTP server request
+ccep -> ipm : [1] policy grpc\n(retry=2)
+
+ipm -> iep : grpc on\nlocalhost:nnnn
+
+iep -> cas : DNS lookup
+
+cep1 -> ca1 : grpc
+cep2 -> ca2 : grpc
+
+iep .up.> cep1 : TCP
+iep .down.> cep2 : TCP
+
+ccep -down-> sep : [2] HTTP request
+sep -> s
+
+@enduml

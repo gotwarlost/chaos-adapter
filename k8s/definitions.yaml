@@ -1,0 +1,80 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ${NAMESPACE}
+  labels:
+    istio-injection: enabled
+---
+apiVersion: config.istio.io/v1alpha2
+kind: template
+metadata:
+  name: chaos
+  namespace: ${NAMESPACE}
+  labels:
+    app: chaos
+spec:
+  descriptor: ${TEMPLATE_BASE64_CONFIG}
+---
+apiVersion: config.istio.io/v1alpha2
+kind: instance
+metadata:
+  name: chaos
+  namespace: ${NAMESPACE}
+  labels:
+    app: chaos
+spec:
+  params:
+    hello: request.headers["x-hello"] | ""
+  template: chaos.template.${NAMESPACE}
+---
+apiVersion: config.istio.io/v1alpha2
+kind: adapter
+metadata:
+  name: chaos
+  namespace: ${NAMESPACE}
+  labels:
+    app: chaos
+spec:
+  config: ${ADAPTER_BASE64_CONFIG}
+  session_based: false
+  templates:
+    - chaos.template.${NAMESPACE}
+---
+apiVersion: config.istio.io/v1alpha2
+kind: handler
+metadata:
+  name: chaos
+  namespace: ${NAMESPACE}
+  labels:
+    app: chaos
+spec:
+  adapter: chaos.adapter.${NAMESPACE}
+  connection:
+    address: ${HANDLER_ENDPOINT}
+---
+apiVersion: config.istio.io/v1alpha2
+kind: rule
+metadata:
+  name: chaos
+  namespace: ${SYSTEM_NAMESPACE}
+  labels:
+    app: chaos
+spec:
+  actions:
+    - handler: chaos.handler.${NAMESPACE}
+      instances:
+        - chaos.instance.${NAMESPACE}
+      name: chaos
+  match: destination.labels["app"] == "chaos-server"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Sidecar
+metadata:
+  name: default
+  namespace: ${NAMESPACE}
+spec:
+  egress:
+    - hosts:
+        - ./*
+        - istio-system/*
