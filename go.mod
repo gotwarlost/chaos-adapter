@@ -8,7 +8,7 @@ require (
 	github.com/gogo/protobuf v1.3.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.1.0
 	github.com/prometheus/client_golang v0.9.3-0.20190127221311-3c4408c8b829
-	golang.org/x/net v0.0.0-20190926025831-c00fd9afed17
+	golang.org/x/net v0.0.0-20190926025831-c00fd9afed17 // indirect
 	google.golang.org/grpc v1.24.0
 	istio.io/api v0.0.0-20190925180116-1b594bcab992
 	istio.io/gogo-genproto v0.0.0-20190906190748-4801a8955c3d

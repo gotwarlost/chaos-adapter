@@ -1,12 +1,12 @@
 package adapter
 
 import (
+	"context"
 	"sync"
 	"time"
 
 	"github.com/gotwarlost/chaos-adapter/adapter/chaos"
 	"github.com/gotwarlost/chaos-adapter/util"
-	"golang.org/x/net/context"
 	model "istio.io/api/mixer/adapter/model/v1beta1"
 	rpc "istio.io/gogo-genproto/googleapis/google/rpc"
 	"istio.io/istio/mixer/pkg/status"
