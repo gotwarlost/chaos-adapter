@@ -6,7 +6,10 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/dimfeld/httptreemux"
@@ -85,7 +88,9 @@ func httpHandler() http.Handler {
 func main() {
 	var port int
 	var defaultDelay string
+	var exitDelay string
 	flag.StringVar(&defaultDelay, "delay", "0", "default mean delay for response")
+	flag.StringVar(&exitDelay, "exit-delay", "0", "default delay for server exit")
 	flag.IntVar(&port, "port", 8080, "listen port")
 	flag.Parse()
 	d, err := time.ParseDuration(defaultDelay)
@@ -93,6 +98,26 @@ func main() {
 		log.Fatalln(err)
 	}
 	setDelay(d)
+
+	ed, err := time.ParseDuration(exitDelay)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	stop := func() {
+		log.Println("Got SIGTERM, stopping in", ed)
+		time.Sleep(ed)
+		os.Exit(1)
+	}
+	var once sync.Once
+	go func() {
+		ch := make(chan os.Signal, 5)
+		signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
+		for range ch {
+			once.Do(stop)
+		}
+	}()
+
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), httpHandler()); err != nil {
 		log.Fatalln(err)
 	}

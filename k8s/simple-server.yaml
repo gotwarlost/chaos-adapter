@@ -1,0 +1,97 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: chaos
+  name: chaos-server
+  labels:
+    app: chaos-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chaos-server
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "true"
+        sidecar.istio.io/proxyCPU: "1"
+        sidecar.istio.io/proxyMemory: 1Gi
+      labels:
+        app: chaos-server
+    spec:
+      terminationGracePeriodSeconds: 240
+      containers:
+        - name: server
+          image: gotwarlost/chaos-adapter:latest
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          command:
+            - /backend
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: chaos
+  name: chaos-server
+  labels:
+    app: chaos-server
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: chaos-server
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: chaos
+  name: rando-server
+  labels:
+    app: rando-server
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: rando-server

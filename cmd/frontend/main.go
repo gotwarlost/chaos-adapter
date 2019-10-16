@@ -104,6 +104,7 @@ func main() {
 	flag.IntVar(&timeoutSecs, "timeout", timeoutSecs, "request timeout in seconds")
 	flag.IntVar(&delayMillis, "delay", delayMillis, "delay between requests in milliseconds")
 	flag.StringVar(&header, "header-name", header, "header to set")
+	flag.Parse()
 
 	done := make(chan struct{})
 	doHTTP := func(client *http.Client) {
