@@ -1,3 +1,13 @@
+# we add the following the patch to the sidecar injector configmap for the pod template that is relevant to the test.
+# It ensures that the proxy container only exits when all listeners have stopped listening in the main container
+#
+# lifecycle:
+#   preStop:
+#     exec:
+#       command:
+#         - /bin/sh
+#         - "-c"
+#         - "while [ $(netstat -plnt | grep ^tcp | grep -v -e envoy -e pilot-agent | wc -l) -ne 0 ]; do sleep 1; done"
 ---
 apiVersion: apps/v1
 kind: Deployment
